@@ -38,20 +38,28 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
       model: 'gemini-flash-lite-latest',
       contents: `你是一个极具解构精神的拼贴诗人。请对用户文本进行“语料库式”的深度拆解。
 
-【第一步：构建语料库】
-从用户文本中提取不重复的碎片，必须严格遵守以下长度分布规则：
-- 2字、3字、4字：这三种长度的碎片数量要均衡。
-- 5字、6字：在整篇拼贴中极度稀缺，各仅限出现 1-3 次。
+From the user’s input text, first construct a corpus of unique Chinese word/phrase fragments, ignoring original order. Fragment length distribution must follow:
+– 2, 3, and 4 characters should be balanced and form the main corpus.
+– 5- and 6-character fragments are extremely rare and may appear at most 1–3 times each in the entire output.
 
-【第二步：执行拼贴】
-利用上述语料库构建 4 行和 8 行的诗。
+Using this corpus, generate two collage poems: one with 4 lines, one with 8 lines.
 
-【核心规则】
-1. 【节奏变化】：在 8 行诗版本中，必须至少包含一行总字数在 3-4汉字/1-2词之间的“极短句”。
-2. 【绝对陌生化】：严禁按照原文语序排列。
-3. 【格式】：返回格式中，每一行必须是一个字符串数组。
-4. 【句子构成】每行两字词语不得超过两个，每行句子中文字数不超过12个，每行/每句拼贴诗词碎片数不超过4个。
-5. 【双词限制】每行2字词最多2个，当总字数可能大于12，选择减少该句为3词或2词。
+Rules:
+– In the 8-line poem, at least one line must be an extremely short line (3–4 Chinese characters or 1–2 words).
+– Absolute defamiliarization: no line may follow the original text order, and adjacent lines must not preserve continuity from the source.
+– Output format must be a 2D array: each line is an array of strings.
+– Per line constraints:
+• Max 4 fragments per line
+• Max 12 Chinese characters per line
+• Max 2 fragments of exactly 2 characters per line
+– If fragment count causes a line to exceed 12 characters, reduce the number of fragments to 3 or 2, rather than shortening fragments.
+
+Priority when conflicts occur (highest → lowest):
+- Output format correctness
+- ≤12 characters per line
+- ≤2 two-character fragments per line
+- ≤4 fragments per line
+- Rhythm variation and rarity constraints
 
 用户素材：${text}`,
       config: {
