@@ -30,10 +30,12 @@ export const fallbackExtract = (text: string): PoeticResponse => {
 
 export const extractPoeticFragments = async (text: string): Promise<PoeticResponse> => {
   try {
-    // 严格按照 Gemini SDK 指令初始化
+    // 初始化 AI 客户端
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // 使用 gemini-flash-lite-latest 模型，它通常具有更高的免费层级配额
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-lite-latest',
       contents: `你是一个极具解构精神的拼贴诗人。请对用户文本进行“语料库式”的深度拆解。
 
 【第一步：构建语料库】
@@ -60,6 +62,7 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
           },
           required: ["fourLines", "eightLines"]
         },
+        // Lite 模型不需要庞大的思维链预算，设为 0 以提高响应速度
         thinkingConfig: { thinkingBudget: 0 }
       },
     });
@@ -79,6 +82,7 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
     };
   } catch (error) {
     console.error("Gemini API Error:", error);
+    // 如果 API 依然报错（如完全超出每日总量），则进入 fallback 模式，保证 UI 不崩溃
     return fallbackExtract(text);
   }
 };
