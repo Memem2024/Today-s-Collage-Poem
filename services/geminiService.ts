@@ -29,9 +29,12 @@ export const fallbackExtract = (text: string): PoeticResponse => {
 };
 
 export const extractPoeticFragments = async (text: string): Promise<PoeticResponse> => {
-  // 严格遵守指令：直接使用 process.env.API_KEY，且在调用前初始化实例
+  // Vite 在构建时会将 process.env.API_KEY 替换为具体的字符串
   const apiKey = process.env.API_KEY;
-  if (!apiKey || apiKey === "undefined" || apiKey === "null") {
+
+  // 如果替换后的结果为空，或者依然是占位符，则降级
+  if (!apiKey || apiKey === "") {
+    console.error("API Key is missing in the production build.");
     return fallbackExtract(text);
   }
 
