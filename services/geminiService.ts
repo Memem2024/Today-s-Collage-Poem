@@ -87,7 +87,7 @@ export const generatePoemImage = async (poemText: string): Promise<string | unde
       contents: `Extract exactly TWO simple noun keywords from the following text that represent its core imagery.
                        Output ONLY the keywords in English separated by a comma.
                        Examples: "Mountain, Cloud", "Window, Lamp", "Bird, Leaf".
-                       STRICTLY AVOID abstract emotions or sensitive words.`
+                       STRICTLY AVOID abstract emotions or sensitive words.`,
       Text to translate: ${poemText.substring(0, 150)}`
     });
 
