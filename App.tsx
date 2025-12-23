@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { toPng } from 'html-to-image';
 import { extractPoeticFragments, generatePoemImage } from './services/geminiService';
@@ -34,44 +35,36 @@ const ArtisticHeader = () => {
     <div className="relative w-full h-[240px] flex items-center justify-center">
       <WaggingCat />
       
-      {/* Background Decorative Layer */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-[0.03] flex items-center justify-center">
         <span className="text-[200px] font-extralight font-serif-sc transform -rotate-12 translate-x-8">詩</span>
       </div>
 
       <div className="relative w-[280px] h-full font-serif-sc">
-        {/* '今' - Top Left, Architectural, ExtraLight */}
         <div className="absolute top-2 left-4 text-6xl font-extralight text-black opacity-80 leading-none">
           今
         </div>
         
-        {/* '天' - Slender Ming style, Light */}
         <div className="absolute top-10 left-16 text-5xl font-light text-gray-800 opacity-90 leading-none">
           天
         </div>
 
-        {/* '的' - Small, tucked in, subtle background blur */}
         <div className="absolute top-16 left-12 text-2xl font-normal text-gray-400 opacity-60 leading-none z-0 text-blur">
           的
         </div>
 
-        {/* '拼' - Large but slender, anchored lower left */}
         <div className="absolute bottom-12 left-2 text-7xl font-extralight text-black opacity-95 leading-none">
           拼
         </div>
 
-        {/* '贴' - Offset from '拼', overlapping, very thin verticals */}
         <div className="absolute bottom-4 left-24 text-6xl font-extralight text-gray-700 opacity-80 leading-none transform -rotate-3">
           贴
         </div>
 
-        {/* '诗' - Elegant, anchoring the right side, Medium weight for focus */}
         <div className="absolute top-2 right-4 flex flex-col items-center">
           <div className="w-0.5 h-10 bg-black/10 mb-2"></div>
           <span className="text-7xl font-medium text-black tracking-tighter leading-tight drop-shadow-sm">诗</span>
         </div>
 
-        {/* Fine Text Details (English and Accents) */}
         <div className="absolute top-36 left-32 flex flex-col items-start opacity-40 scale-75 transform origin-left">
            <span className="text-[10px] font-black tracking-[0.6em] uppercase mb-1">Breathing Space</span>
            <div className="w-20 h-px bg-black/40"></div>
@@ -195,22 +188,16 @@ const App: React.FC = () => {
     const lines: PoeticFragment[][] = Array.from({ length: maxLines }, () => []);
     const temp = [...fragments];
     
-    // Step 1: Ensure no empty lines by assigning one frag to each line first
     const shuffledLinesIndices = Array.from({ length: maxLines }, (_, i) => i).sort(() => Math.random() - 0.5);
     for (let i = 0; i < maxLines && temp.length > 0; i++) {
         lines[shuffledLinesIndices[i]].push(temp.shift()!);
     }
 
-    // Step 2: Distribute remaining fragments
     while (temp.length > 0) {
       const frag = temp.shift()!;
       let targetLineIdx = -1;
-      
       const shuffledIndices = Array.from({ length: maxLines }, (_, i) => i).sort(() => Math.random() - 0.5);
       
-      // Try to find a line that:
-      // 1. Doesn't exceed 11 characters (total must be < 12)
-      // 2. Doesn't have duplicate subjects
       for (const idx of shuffledIndices) {
         const currentLen = lines[idx].reduce((acc, f) => acc + f.text.length, 0);
         if (currentLen + frag.text.length < 12 && !hasDuplicateSubject(lines[idx], frag)) {
@@ -219,7 +206,6 @@ const App: React.FC = () => {
         }
       }
 
-      // Fallback: Pick the line with the most space, ignoring subject rule if absolutely necessary to keep characters < 12
       if (targetLineIdx === -1) {
         for (const idx of shuffledIndices) {
           const currentLen = lines[idx].reduce((acc, f) => acc + f.text.length, 0);
@@ -230,17 +216,14 @@ const App: React.FC = () => {
         }
       }
 
-      // Hard fallback: If it STILL doesn't fit, pick the shortest line regardless
       if (targetLineIdx === -1) {
         targetLineIdx = shuffledIndices.reduce((idx, i) => 
           lines[i].reduce((a, f) => a + f.text.length, 0) < lines[idx].reduce((a, f) => a + f.text.length, 0) ? i : idx, 
           shuffledIndices[0]
         );
       }
-      
       lines[targetLineIdx].push(frag);
     }
-
     return lines;
   };
 
