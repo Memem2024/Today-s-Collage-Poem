@@ -64,7 +64,7 @@ const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/10 backdrop-blur-[3px] transition-all duration-500 animate-in fade-in">
-      <div
+      <div 
         className="relative bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 max-w-[300px] w-full text-center transform rotate-[-1deg] animate-in zoom-in-95 duration-300"
       >
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-white/70 backdrop-blur-sm border border-gray-200/50 rotate-2 opacity-90 shadow-sm"></div>
@@ -226,7 +226,7 @@ const App: React.FC = () => {
         text: t,
         style: generateFragmentStyle(t.length > 4),
       }));
-
+      
       const newPoem: CollagePoem = {
         id: `poem-${Date.now()}`,
         title,
@@ -282,16 +282,16 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f4f1ea] flex flex-col items-center p-4 md:p-8 relative">
       <GlobalRaindrops />
-
+      
       {/* 只有在 loading 为 true 时显示遮罩 */}
       <QueueOverlay isVisible={loading} />
-
+      
       <header className="mb-4 text-center relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100 w-full flex items-center justify-center overflow-hidden h-[280px]">
           <ArtisticHeader />
         </div>
       </header>
-
+      
       <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-start justify-center relative z-10">
         <div className="w-full max-w-sm mx-auto lg:mx-0 space-y-4">
           <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -303,7 +303,7 @@ const App: React.FC = () => {
               {loading ? '正在拼贴...' : '开始拼贴'}
             </button>
           </div>
-
+          
           <div className="bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100">
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((date) => (
@@ -325,13 +325,13 @@ const App: React.FC = () => {
               ))}
             </div>
           )}
-
+          
           {currentPoem ? (
             <div className="space-y-4">
-              <CollageCanvas
-                poem={currentPoem}
-                variant={activeVariant}
-                innerRef={canvasRef}
+              <CollageCanvas 
+                poem={currentPoem} 
+                variant={activeVariant} 
+                innerRef={canvasRef} 
                 onImageLoad={handleImageReady} // 监听拼贴诗内部图片加载
               />
               <button onClick={handleExport} className="w-full py-3 bg-black text-white rounded-xl text-xs font-black shadow-xl hover:bg-gray-900 transition-transform active:scale-95 flex items-center justify-center gap-2">
@@ -349,7 +349,7 @@ const App: React.FC = () => {
           )}
         </div>
       </div>
-
+      
       <footer className="mt-12 text-gray-300 text-[9px] font-serif-sc uppercase tracking-[0.4em] relative z-10 font-bold">Mosaic Muse • Living Poetry</footer>
     </div>
   );

@@ -28,7 +28,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
   const rawLines = variant !== 'image-only' ? poem.variantLines[variant] : [];
   const maxLinesAllowed = variant === '4-lines' ? 4 : variant === '8-lines' ? 8 : 0;
   const currentLines = rawLines.slice(0, maxLinesAllowed);
-
+  
   const dateObj = new Date(poem.timestamp);
   const isEightLines = variant === '8-lines';
 
@@ -38,13 +38,13 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
   };
 
   return (
-    <div
+    <div 
       ref={innerRef}
       className="relative w-full aspect-[3/4] max-w-sm mx-auto bg-[#f8f5f0] shadow-2xl overflow-hidden border-[12px] border-white flex flex-col transition-all duration-500"
     >
       {/* 纸张纹理叠加 */}
       <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper.png')] z-30"></div>
-
+      
       {/* 日期标签 */}
       <div className="absolute top-4 left-4 z-40 flex flex-col items-start font-serif-sc">
         <div className="bg-black text-white px-1.5 py-0.5 text-[10px] font-black leading-none mb-0.5 shadow-sm">
@@ -89,11 +89,11 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
         <div className={`flex-1 w-full overflow-hidden px-5 transition-all duration-500 ${variant === 'image-only' ? 'py-10' : 'pb-4'}`}>
           <div className="w-full h-full rounded-sm shadow-sm border border-gray-100/50 overflow-hidden bg-[#fafaf7]">
             {poem.imageUrl ? (
-              <img
-                src={poem.imageUrl}
-                alt="AI Art"
+              <img 
+                src={poem.imageUrl} 
+                alt="AI Art" 
                 onLoad={handleImgLoad} // 监听图片加载
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -102,7 +102,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
             )}
           </div>
         </div>
-
+        
         {/* 页脚信息 */}
         <div className="px-6 pb-4 flex justify-between items-end opacity-30 font-serif-sc text-[8px] uppercase tracking-widest">
           <div className="flex flex-col">
