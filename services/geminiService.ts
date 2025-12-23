@@ -1,21 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// 针对 Vite/Vercel 环境的 Key 获取加固
-const getApiKey = () => {
-  const key = process.env.API_KEY;
-  // 过滤 Vite define 可能注入的 "undefined" 字符串
-  if (!key || key === "undefined" || key === "null") return "";
-  return key;
-};
-
 export interface PoeticResponse {
-  fourLines: string[][]; 
+  fourLines: string[][];
   eightLines: string[][];
 }
 
 export const fallbackExtract = (text: string): PoeticResponse => {
-  console.warn("Using fallback poetic fragments due to missing or invalid API Key.");
+  console.warn("Using fallback poetic fragments.");
   return {
     fourLines: [
       ["此刻", "情绪", "拼贴"],
@@ -37,11 +29,14 @@ export const fallbackExtract = (text: string): PoeticResponse => {
 };
 
 export const extractPoeticFragments = async (text: string): Promise<PoeticResponse> => {
-  const key = getApiKey();
-  if (!key) return fallbackExtract(text);
+  // 严格遵守指令：直接使用 process.env.API_KEY，且在调用前初始化实例
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey === "undefined" || apiKey === "null") {
+    return fallbackExtract(text);
+  }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: key });
+    const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `你是一个极具解构精神的拼贴诗人。请对用户文本进行“语料库式”的深度拆解。
@@ -70,7 +65,6 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
           },
           required: ["fourLines", "eightLines"]
         },
-        // 禁用思维链以加快解构速度
         thinkingConfig: { thinkingBudget: 0 }
       },
     });

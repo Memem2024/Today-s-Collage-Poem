@@ -182,22 +182,15 @@ const App: React.FC = () => {
             {currentPoem ? (
               <div className="w-full flex flex-col items-center gap-10">
                 {isManualMode ? (
-                  /* 还原之前的手动拼贴界面 */
                   <div className="w-full flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4">
                     <div className="w-full aspect-[3/4.5] max-w-sm bg-white shadow-xl rounded-sm border-[16px] border-white overflow-y-auto p-4 flex flex-col gap-6">
                        <h3 className="text-[10px] uppercase tracking-widest font-black text-gray-300 text-center mb-4">拼贴画布</h3>
                        {manualLines.map((line, lIdx) => (
-                         <div 
-                           key={lIdx} 
-                           onClick={() => setCurrentActiveLine(lIdx)}
-                           className={`min-h-[40px] p-2 flex flex-wrap gap-2 border-b border-dashed transition-colors ${currentActiveLine === lIdx ? 'border-black bg-gray-50' : 'border-gray-100'}`}
-                         >
+                         <div key={lIdx} onClick={() => setCurrentActiveLine(lIdx)}
+                           className={`min-h-[40px] p-2 flex flex-wrap gap-2 border-b border-dashed transition-colors ${currentActiveLine === lIdx ? 'border-black bg-gray-50' : 'border-gray-100'}`}>
                            {line.map((frag, fIdx) => (
-                             <span 
-                               key={fIdx} 
-                               onClick={(e) => { e.stopPropagation(); const n = [...manualLines]; n[lIdx].splice(fIdx, 1); setManualLines(n); }}
-                               className="bg-gray-100 px-3 py-1 text-xs rounded-sm cursor-pointer hover:bg-red-50 hover:text-red-500 transition-colors"
-                             >
+                             <span key={fIdx} onClick={(e) => { e.stopPropagation(); const n = [...manualLines]; n[lIdx].splice(fIdx, 1); setManualLines(n); }}
+                               className="bg-gray-100 px-3 py-1 text-xs rounded-sm cursor-pointer hover:bg-red-50 hover:text-red-500 transition-colors">
                                {frag}
                              </span>
                            ))}
@@ -205,34 +198,21 @@ const App: React.FC = () => {
                          </div>
                        ))}
                        {manualLines.length < 8 && (
-                         <button onClick={() => setManualLines([...manualLines, []])} className="text-[10px] uppercase font-black text-gray-400 py-2 border border-dashed border-gray-200 hover:border-gray-400 transition-all">
-                            + 添加新行
-                         </button>
+                         <button onClick={() => setManualLines([...manualLines, []])} className="text-[10px] uppercase font-black text-gray-400 py-2 border border-dashed border-gray-200 hover:border-gray-400 transition-all">+ 添加新行</button>
                        )}
                     </div>
-
                     <div className="w-full bg-white/60 p-4 rounded-xl shadow-inner max-h-48 overflow-y-auto">
                       <h4 className="text-[9px] uppercase font-black text-gray-400 mb-3 tracking-widest">语料库片段</h4>
                       <div className="flex flex-wrap gap-2">
                         {currentPoem.rawPool?.map((text, idx) => (
-                          <button 
-                            key={idx} 
-                            onClick={() => { const n = [...manualLines]; n[currentActiveLine] = [...n[currentActiveLine], text]; setManualLines(n); }}
-                            className="bg-white px-3 py-1.5 text-xs border border-gray-100 hover:border-black transition-all shadow-sm active:scale-90"
-                          >
-                            {text}
-                          </button>
+                          <button key={idx} onClick={() => { const n = [...manualLines]; n[currentActiveLine] = [...n[currentActiveLine], text]; setManualLines(n); }}
+                            className="bg-white px-3 py-1.5 text-xs border border-gray-100 hover:border-black transition-all shadow-sm active:scale-90">{text}</button>
                         ))}
                       </div>
                     </div>
-
                     <div className="flex gap-4 w-full max-w-sm">
-                      <button onClick={() => setIsManualMode(false)} className="flex-1 py-4 border border-black text-black text-xs font-black tracking-widest uppercase rounded-xl hover:bg-black hover:text-white transition-all">
-                        取消
-                      </button>
-                      <button onClick={handleManualSave} className="flex-1 py-4 bg-black text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-xl active:scale-95 transition-all">
-                        完成拼贴
-                      </button>
+                      <button onClick={() => setIsManualMode(false)} className="flex-1 py-4 border border-black text-black text-xs font-black tracking-widest uppercase rounded-xl hover:bg-black hover:text-white transition-all">取消</button>
+                      <button onClick={handleManualSave} className="flex-1 py-4 bg-black text-white text-xs font-black tracking-widest uppercase rounded-xl shadow-xl active:scale-95 transition-all">完成拼贴</button>
                     </div>
                   </div>
                 ) : (
@@ -241,18 +221,14 @@ const App: React.FC = () => {
                       <CollageCanvas poem={currentPoem} variant={activeVariant} innerRef={canvasRef} />
                       {activeVariant === 'image-only' && (
                         <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
-                          <button 
-                            onClick={() => { setIsManualMode(true); setManualLines([[]]); setCurrentActiveLine(0); }}
-                            className="pointer-events-auto px-8 py-3 bg-white border border-black text-black text-[10px] font-black tracking-[0.3em] uppercase rounded-full hover:bg-black hover:text-white transition-all shadow-lg animate-bounce"
-                          >
+                          <button onClick={() => { setIsManualMode(true); setManualLines([[]]); setCurrentActiveLine(0); }}
+                            className="pointer-events-auto px-8 py-4 bg-white border border-black text-black text-[11px] font-black tracking-[0.3em] uppercase rounded-full hover:bg-black hover:text-white transition-all shadow-2xl animate-bounce">
                             是否开始手动拼贴？
                           </button>
                         </div>
                       )}
                     </div>
-                    
-                    <button onClick={downloadImage} 
-                      className="w-full max-w-sm bg-black text-white py-5 rounded-xl font-bold text-sm tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-gray-900 transition-all shadow-2xl mt-4">
+                    <button onClick={downloadImage} className="w-full max-w-sm bg-black text-white py-5 rounded-xl font-bold text-sm tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-gray-900 transition-all shadow-2xl mt-4">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                       保存此版本
                     </button>
