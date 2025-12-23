@@ -76,8 +76,8 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
                   {frag.text}
                 </div>
               ))}
-              {/* 行末标点装饰 */}
-              <div className="bg-white px-1.5 py-1 shadow-sm text-black/10 font-black rotate-2 text-[10px] ml-1 shrink-0 border border-black/5">
+              {/* 行末标点装饰：改为灰色底 */}
+              <div className="bg-gray-100 px-1.5 py-1 shadow-sm text-black/20 font-black rotate-2 text-[10px] ml-1 shrink-0 border border-black/5">
                 {lineIdx === currentLines.length - 1 ? "。" : "，"}
               </div>
             </div>
