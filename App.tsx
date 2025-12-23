@@ -29,49 +29,81 @@ const WaggingCat = ({ scale = 1 }: { scale?: number }) => (
   </div>
 );
 
-const QueueOverlay = ({ queueCount }: { queueCount: number }) => (
-  <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/5 backdrop-blur-[2px] transition-all duration-500">
-    <div
-      className="relative bg-white p-8 shadow-2xl border border-gray-100 max-w-[280px] w-full text-center transform rotate-[-1deg]"
-      style={{ boxShadow: '20px 20px 60px rgba(0,0,0,0.05), -20px -20px 60px rgba(255,255,255,0.8)' }}
-    >
-      {/* 装饰性胶带 */}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-white/60 backdrop-blur-sm border border-gray-200/50 rotate-1 opacity-80 shadow-sm"></div>
+// 定义生成的阶段文案
+const GENERATION_STAGES = [
+  "正在研磨文字片段...",
+  "正在捕捉思绪意象...",
+  "正在调配莫兰迪色...",
+  "纸张纹理铺设中...",
+  "等待墨水完全晾晒..."
+];
 
-      <div className="relative mb-8 h-12">
-        <WaggingCat scale={0.4} />
-      </div>
+const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
+  const [queueCount, setQueueCount] = useState(Math.floor(Math.random() * 8) + 3);
+  const [waitTime, setWaitTime] = useState(queueCount * 2 + 5);
+  const [stageIndex, setStageIndex] = useState(0);
 
-      <h3 className="font-serif-sc font-black text-gray-800 text-lg mb-2 tracking-tight">正在研磨思绪</h3>
+  useEffect(() => {
+    if (!isVisible) return;
 
-      <div className="space-y-4 font-serif-sc">
-        <div className="flex flex-col items-center">
-          <span className="text-[10px] text-gray-400 uppercase tracking-[0.3em] mb-1">Queue Status</span>
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-black text-black">{queueCount}</span>
-            <span className="text-[10px] text-gray-500 font-bold">位诗人在排队</span>
+    const timer = setInterval(() => {
+      setQueueCount(prev => Math.max(1, prev - (Math.random() > 0.6 ? 1 : 0)));
+      setWaitTime(prev => Math.max(1, prev - 1));
+    }, 1000);
+
+    const stageTimer = setInterval(() => {
+      setStageIndex(prev => (prev + 1) % GENERATION_STAGES.length);
+    }, 2500);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(stageTimer);
+    };
+  }, [isVisible]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/10 backdrop-blur-[3px] transition-all duration-500 animate-in fade-in">
+      <div
+        className="relative bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 max-w-[300px] w-full text-center transform rotate-[-1deg] animate-in zoom-in-95 duration-300"
+      >
+        {/* 装饰性胶带 */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-white/70 backdrop-blur-sm border border-gray-200/50 rotate-2 opacity-90 shadow-sm"></div>
+
+        <div className="relative mb-10 h-10">
+          <WaggingCat scale={0.45} />
+        </div>
+
+        <div className="space-y-5 font-serif-sc">
+          <div>
+            <h3 className="font-black text-gray-800 text-lg mb-1 tracking-tighter">拼贴工坊进行中</h3>
+            <p className="text-[10px] text-gray-400 animate-pulse">{GENERATION_STAGES[stageIndex]}</p>
           </div>
-        </div>
 
-        <div className="w-full bg-gray-50 h-1 rounded-full overflow-hidden">
-          <div className="h-full bg-black animate-[progress_10s_ease-in-out_infinite]"></div>
-        </div>
+          <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50">
+            <div className="flex flex-col border-r border-gray-50">
+              <span className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">正在排队</span>
+              <span className="text-xl font-black text-black">{queueCount} <span className="text-[10px] font-normal text-gray-400">位</span></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">预计等待</span>
+              <span className="text-xl font-black text-black">{waitTime} <span className="text-[10px] font-normal text-gray-400">秒</span></span>
+            </div>
+          </div>
 
-        <p className="text-[10px] text-gray-400 leading-relaxed italic">
-          “好诗需要时间，<br/>就像雨水落在干燥的纸上。”
-        </p>
+          <div className="w-full bg-gray-50 h-1.5 rounded-full overflow-hidden relative">
+            <div className="h-full bg-black/80 transition-all duration-1000 ease-out" style={{ width: `${Math.min(100, (30 - waitTime) * 4)}%` }}></div>
+          </div>
+
+          <p className="text-[10px] text-gray-400 italic leading-loose opacity-60">
+            “慢一点，<br/>让每一个字都有落下的声音。”
+          </p>
+        </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes progress {
-          0% { width: 0%; }
-          50% { width: 70%; }
-          100% { width: 95%; }
-        }
-      `}} />
     </div>
-  </div>
-);
+  );
+};
 
 const ArtisticHeader = () => (
   <div className="relative w-full h-[240px] flex items-center justify-center">
@@ -123,7 +155,6 @@ const App: React.FC = () => {
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
-  const [queueCount, setQueueCount] = useState(0);
   const [currentPoem, setCurrentPoem] = useState<CollagePoem | null>(null);
   const [activeVariant, setActiveVariant] = useState<PoemVariant>('4-lines');
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -139,17 +170,6 @@ const App: React.FC = () => {
       if (entry) setInputText(entry.content);
     }
   }, []);
-
-  // 模拟排队人数变化的计时器
-  useEffect(() => {
-    if (loading) {
-      setQueueCount(Math.floor(Math.random() * 5) + 2); // 初始排队 2-6 人
-      const interval = setInterval(() => {
-        setQueueCount(prev => Math.max(1, prev - (Math.random() > 0.7 ? 1 : 0)));
-      }, 3000);
-      return () => clearInterval(interval);
-    }
-  }, [loading]);
 
   useEffect(() => {
     const entry = entries.find(e => e.date === selectedDate);
@@ -224,8 +244,8 @@ const App: React.FC = () => {
     } catch (err) {
       console.error("Silent recovery engaged.", err);
     } finally {
-      // 稍微多停留一下，让排队感更真实
-      setTimeout(() => setLoading(false), 500);
+      // 完成生成后延迟关闭，确保 UI 体验连贯
+      setTimeout(() => setLoading(false), 800);
     }
   };
 
@@ -258,7 +278,9 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#f4f1ea] flex flex-col items-center p-4 md:p-8 relative">
       <GlobalRaindrops />
-      {loading && <QueueOverlay queueCount={queueCount} />}
+
+      {/* 排队窗口，仅在 loading 为 true 时显示 */}
+      <QueueOverlay isVisible={loading} />
 
       <header className="mb-4 text-center relative z-10 w-full max-w-sm flex flex-col items-center">
         <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl shadow-sm border border-gray-100 w-full flex items-center justify-center overflow-hidden h-[280px]">
@@ -267,7 +289,6 @@ const App: React.FC = () => {
       </header>
 
       <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-8 items-start justify-center relative z-10">
-        {/* 左侧控制区 */}
         <div className="w-full max-w-sm mx-auto lg:mx-0 space-y-4">
           <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-gray-100">
             <h2 className="text-xs font-serif-sc font-black mb-4 flex justify-between tracking-widest text-gray-400">
@@ -275,7 +296,7 @@ const App: React.FC = () => {
             </h2>
             <textarea className="w-full h-40 p-4 bg-[#fafaf9]/80 rounded-xl focus:ring-1 focus:ring-black outline-none transition-all resize-none border-none text-sm text-gray-700 leading-relaxed font-serif-sc" placeholder="书写此刻的思绪..." value={inputText} onChange={(e) => setInputText(e.target.value)} />
             <button onClick={handleGenerateToday} disabled={loading || !inputText.trim()} className="mt-4 w-full py-3 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:bg-gray-200 shadow-lg min-h-[50px] flex items-center justify-center">
-              {loading ? '正在拼贴...' : '开始拼贴'}
+              {loading ? '正在研磨...' : '开始拼贴'}
             </button>
           </div>
 
@@ -290,7 +311,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* 右侧预览区 */}
         <div className="w-full max-w-sm mx-auto lg:mx-0 space-y-4">
           {currentPoem && (
             <div className="flex bg-white/60 p-1 rounded-xl gap-1 border border-white/40 shadow-sm">
