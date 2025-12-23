@@ -84,9 +84,10 @@ export const generatePoemImage = async (poemText: string): Promise<string | unde
     // This bypasses the strict safety filters that often block poetic (but abstract) Chinese phrases
     const promptRes = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Translate the emotional essence of these poetic fragments into a safe, minimalist, and non-violent visual description (English, max 15 words).
-      Theme: Nature, light, Zen, ink-wash aesthetics.
-      STRICTLY AVOID: Any words related to fragments, cutting, people, bodies, or negative emotions.
+      contents: `Extract exactly TWO simple noun keywords from the following text that represent its core imagery.
+                       Output ONLY the keywords in English separated by a comma.
+                       Examples: "Mountain, Cloud", "Window, Lamp", "Bird, Leaf".
+                       STRICTLY AVOID abstract emotions or sensitive words.`
       Text to translate: ${poemText.substring(0, 150)}`
     });
 
