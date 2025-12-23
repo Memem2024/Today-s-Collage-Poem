@@ -32,8 +32,17 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
   const dateObj = new Date(poem.timestamp);
   const formattedDate = `${dateObj.getFullYear()}/${(dateObj.getMonth() + 1).toString().padStart(2, '0')}/${dateObj.getDate().toString().padStart(2, '0')}`;
   
-  // 动态决定行间距：行数越多间距越小
+  // 动态决定行间距
   const lineGapClass = currentLines.length > 5 ? 'gap-3' : 'gap-12';
+
+  // 应用用户要求的精确偏移
+  const offsetStyle = {
+    transform: variant === '4-lines' 
+      ? 'translate(5px, -10px)' 
+      : variant === '8-lines' 
+        ? 'translateX(5px)' 
+        : 'none'
+  };
 
   return (
     <div 
@@ -48,11 +57,12 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
       
       <div 
         className={`relative flex flex-col items-center z-20 transition-all duration-700 px-4 flex-grow
-          ${currentLines.length > 4 ? 'pt-24 pb-12 justify-center' : 'pt-32 pb-12 justify-start'} 
+          ${currentLines.length > 4 ? 'pt-20 pb-12 justify-center' : 'pt-28 pb-12 justify-start'} 
           ${variant === 'image-only' ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}
       >
         <div 
           className={`w-full flex flex-col items-center transition-all duration-700 ${lineGapClass}`}
+          style={offsetStyle}
         >
           {currentLines.map((line, lineIdx) => (
             <div key={lineIdx} className="flex flex-nowrap justify-center items-center gap-[6px] w-full overflow-visible">

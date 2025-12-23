@@ -25,13 +25,12 @@ const WaggingCat = ({ scale = 1 }: { scale?: number }) => (
   </div>
 );
 
-const GENERATION_STAGES = ["解构语料库...", "平衡长短节奏...", "执行重构拼贴...", "纸片降落中..."];
-
 const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
   const [stageIndex, setStageIndex] = useState(0);
+  const stages = ["解构语料库...", "平衡长短节奏...", "执行重构拼贴...", "纸片降落中..."];
   useEffect(() => {
     if (!isVisible) return;
-    const interval = setInterval(() => setStageIndex(s => (s + 1) % GENERATION_STAGES.length), 800);
+    const interval = setInterval(() => setStageIndex(s => (s + 1) % stages.length), 800);
     return () => clearInterval(interval);
   }, [isVisible]);
   if (!isVisible) return null;
@@ -40,7 +39,7 @@ const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
       <div className="bg-white p-10 shadow-2xl border border-gray-50 text-center space-y-4 transform -rotate-1">
         <div className="relative h-8 mb-6"><WaggingCat scale={0.4} /></div>
         <p className="font-serif-sc font-black text-xs tracking-widest text-gray-800 animate-pulse uppercase">
-          {GENERATION_STAGES[stageIndex]}
+          {stages[stageIndex]}
         </p>
         <div className="flex justify-center gap-1">
            {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-black rounded-full animate-bounce" style={{animationDelay: `${i*0.2}s`}}></div>)}
@@ -73,16 +72,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const entry = entries.find(e => e.date === selectedDate);
-    setInputText(entry ? entry.content : '');
-  }, [selectedDate, entries]);
-
-  const mapToFragments = (rawLines: string[][]): PoeticFragment[][] => {
-    return rawLines.map(line => line.map(text => createFrag(text)));
-  };
-
-  const createFrag = (text: string) => {
+  const createFrag = (text: string): PoeticFragment => {
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
     return {
       id: Math.random().toString(36).substr(2, 9),
@@ -100,23 +90,15 @@ const App: React.FC = () => {
   const handleGenerate = async () => {
     if (!inputText.trim()) return;
     setLoading(true);
-    const minWait = new Promise(r => setTimeout(r, 1600));
-
     try {
-      const [response] = await Promise.all([extractPoeticFragments(inputText), minWait]);
-      
-      // 合并所有提取的词作为语料池
-      const pool = Array.from(new Set([
-        ...response.fourLines.flat(),
-        ...response.eightLines.flat()
-      ]));
-
+      const response = await extractPoeticFragments(inputText);
+      const pool = Array.from(new Set([...response.fourLines.flat(), ...response.eightLines.flat()]));
       const poem: CollagePoem = {
         id: Date.now().toString(),
         title: "拼贴诗",
         variantLines: {
-          '4-lines': mapToFragments(response.fourLines),
-          '8-lines': mapToFragments(response.eightLines),
+          '4-lines': response.fourLines.map(line => line.map(createFrag)),
+          '8-lines': response.eightLines.map(line => line.map(createFrag)),
         },
         timestamp: new Date(selectedDate).getTime(),
         background: '#ffffff',
@@ -124,21 +106,8 @@ const App: React.FC = () => {
         rawPool: pool
       };
       setCurrentPoem(poem);
+      setActiveVariant('4-lines');
       setIsManualMode(false);
-    } catch (err) {
-      const fallback = fallbackExtract(inputText);
-      setCurrentPoem({
-        id: Date.now().toString(),
-        title: "此时此刻",
-        variantLines: {
-          '4-lines': mapToFragments(fallback.fourLines),
-          '8-lines': mapToFragments(fallback.eightLines),
-        },
-        timestamp: new Date(selectedDate).getTime(),
-        background: '#ffffff',
-        fontFamily: FONTS[0],
-        rawPool: fallback.eightLines.flat()
-      });
     } finally {
       setLoading(false);
     }
@@ -148,37 +117,12 @@ const App: React.FC = () => {
     if (!currentPoem) return;
     const finalLines = manualLines.filter(line => line.length > 0);
     if (finalLines.length === 0) return;
-
-    const manualFragments = finalLines.map(line => line.map(text => createFrag(text)));
-    
     setCurrentPoem({
       ...currentPoem,
-      variantLines: {
-        ...currentPoem.variantLines,
-        manual: manualFragments
-      }
+      variantLines: { ...currentPoem.variantLines, manual: finalLines.map(line => line.map(createFrag)) }
     });
     setActiveVariant('manual');
     setIsManualMode(false);
-  };
-
-  const addFragmentToManual = (text: string) => {
-    const newLines = [...manualLines];
-    newLines[currentActiveLine] = [...newLines[currentActiveLine], text];
-    setManualLines(newLines);
-  };
-
-  const removeFragmentFromManual = (lineIdx: number, fragIdx: number) => {
-    const newLines = [...manualLines];
-    newLines[lineIdx].splice(fragIdx, 1);
-    setManualLines(newLines);
-  };
-
-  const addNewLine = () => {
-    if (manualLines.length < 8) {
-      setManualLines([...manualLines, []]);
-      setCurrentActiveLine(manualLines.length);
-    }
   };
 
   const downloadImage = async () => {
@@ -186,19 +130,19 @@ const App: React.FC = () => {
     try {
       const dataUrl = await toPng(canvasRef.current, { pixelRatio: 3, quality: 1 });
       const link = document.createElement('a');
-      link.download = `collage-${selectedDate}.png`;
+      link.download = `mosaic-${selectedDate}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) { console.error('Download failed', err); }
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f1ea] text-gray-800 font-serif-sc pb-20 overflow-x-hidden pt-[30px]">
+    <div className="min-h-screen bg-[#f4f1ea] text-gray-800 font-serif-sc pb-20 pt-[30px]">
       <QueueOverlay isVisible={loading} />
       <div className="max-w-4xl mx-auto px-6">
         <header className="relative w-full h-[100px] flex flex-col items-center justify-center mb-8">
           <WaggingCat />
-          <h1 className="text-5xl font-black tracking-tighter opacity-[0.1] absolute pointer-events-none uppercase select-none">MOSAIC MUSE</h1>
+          <h1 className="text-5xl font-black tracking-tighter opacity-[0.1] absolute pointer-events-none uppercase">MOSAIC MUSE</h1>
           <span className="text-lg font-light text-black tracking-[0.4em] z-10">今天的拼贴诗</span>
         </header>
 
@@ -214,8 +158,8 @@ const App: React.FC = () => {
             </div>
             <div className="flex gap-6 items-center">
               <button onClick={handleGenerate} disabled={loading || !inputText.trim()}
-                className="bg-black text-white px-12 py-4 text-xs font-black tracking-[0.25em] hover:bg-gray-800 transition-all shadow-xl active:scale-95">
-                执行拼贴
+                className="bg-black text-white px-12 py-4 text-xs font-black tracking-[0.25em] hover:bg-gray-800 transition-all shadow-xl">
+                解构素材
               </button>
               <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)}
                 className="bg-transparent border-none text-[10px] font-bold tracking-widest uppercase focus:ring-0 cursor-pointer text-black/40" />
@@ -227,13 +171,8 @@ const App: React.FC = () => {
               {(['4-lines', '8-lines', 'image-only', 'manual'] as PoemVariant[]).map((v) => {
                 if (v === 'manual' && !currentPoem?.variantLines.manual) return null;
                 return (
-                  <button 
-                    key={v} 
-                    onClick={() => { setActiveVariant(v); setIsManualMode(false); }}
-                    className={`px-6 py-2 rounded-xl text-[11px] font-black tracking-widest transition-all duration-300 ${
-                      activeVariant === v && !isManualMode ? 'bg-white text-black shadow-md' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
+                  <button key={v} onClick={() => { setActiveVariant(v); setIsManualMode(false); }}
+                    className={`px-6 py-2 rounded-xl text-[11px] font-black tracking-widest transition-all duration-300 ${activeVariant === v && !isManualMode ? 'bg-white text-black shadow-md' : 'text-gray-400'}`}>
                     {v === '4-lines' ? '四行版本' : v === '8-lines' ? '八行版本' : v === 'image-only' ? '无字模式' : '我的创作'}
                   </button>
                 )
@@ -243,8 +182,8 @@ const App: React.FC = () => {
             {currentPoem ? (
               <div className="w-full flex flex-col items-center gap-10">
                 {isManualMode ? (
-                  /* 手动拼贴界面 */
-                  <div className="w-full flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  /* 还原之前的手动拼贴界面 */
+                  <div className="w-full flex flex-col items-center gap-6 animate-in fade-in slide-in-from-bottom-4">
                     <div className="w-full aspect-[3/4.5] max-w-sm bg-white shadow-xl rounded-sm border-[16px] border-white overflow-y-auto p-4 flex flex-col gap-6">
                        <h3 className="text-[10px] uppercase tracking-widest font-black text-gray-300 text-center mb-4">拼贴画布</h3>
                        {manualLines.map((line, lIdx) => (
@@ -256,7 +195,7 @@ const App: React.FC = () => {
                            {line.map((frag, fIdx) => (
                              <span 
                                key={fIdx} 
-                               onClick={(e) => { e.stopPropagation(); removeFragmentFromManual(lIdx, fIdx); }}
+                               onClick={(e) => { e.stopPropagation(); const n = [...manualLines]; n[lIdx].splice(fIdx, 1); setManualLines(n); }}
                                className="bg-gray-100 px-3 py-1 text-xs rounded-sm cursor-pointer hover:bg-red-50 hover:text-red-500 transition-colors"
                              >
                                {frag}
@@ -266,7 +205,7 @@ const App: React.FC = () => {
                          </div>
                        ))}
                        {manualLines.length < 8 && (
-                         <button onClick={addNewLine} className="text-[10px] uppercase font-black text-gray-400 py-2 border border-dashed border-gray-200 hover:border-gray-400 transition-all">
+                         <button onClick={() => setManualLines([...manualLines, []])} className="text-[10px] uppercase font-black text-gray-400 py-2 border border-dashed border-gray-200 hover:border-gray-400 transition-all">
                             + 添加新行
                          </button>
                        )}
@@ -278,7 +217,7 @@ const App: React.FC = () => {
                         {currentPoem.rawPool?.map((text, idx) => (
                           <button 
                             key={idx} 
-                            onClick={() => addFragmentToManual(text)}
+                            onClick={() => { const n = [...manualLines]; n[currentActiveLine] = [...n[currentActiveLine], text]; setManualLines(n); }}
                             className="bg-white px-3 py-1.5 text-xs border border-gray-100 hover:border-black transition-all shadow-sm active:scale-90"
                           >
                             {text}
@@ -298,24 +237,23 @@ const App: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <CollageCanvas poem={currentPoem} variant={activeVariant} innerRef={canvasRef} />
+                    <div className="relative w-full max-w-sm flex flex-col items-center">
+                      <CollageCanvas poem={currentPoem} variant={activeVariant} innerRef={canvasRef} />
+                      {activeVariant === 'image-only' && (
+                        <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+                          <button 
+                            onClick={() => { setIsManualMode(true); setManualLines([[]]); setCurrentActiveLine(0); }}
+                            className="pointer-events-auto px-8 py-3 bg-white border border-black text-black text-[10px] font-black tracking-[0.3em] uppercase rounded-full hover:bg-black hover:text-white transition-all shadow-lg animate-bounce"
+                          >
+                            是否开始手动拼贴？
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     
-                    {activeVariant === 'image-only' && (
-                      <button 
-                        onClick={() => { setIsManualMode(true); setManualLines([[]]); setCurrentActiveLine(0); }}
-                        className="px-8 py-3 bg-white border border-black text-black text-[10px] font-black tracking-[0.3em] uppercase rounded-full hover:bg-black hover:text-white transition-all duration-500 animate-pulse shadow-lg"
-                      >
-                        是否开始手动拼贴？
-                      </button>
-                    )}
-
-                    <button 
-                      onClick={downloadImage} 
-                      className="w-full max-w-sm bg-black text-white py-5 rounded-xl font-bold text-sm tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-gray-900 transition-all active:scale-95 shadow-2xl group"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
+                    <button onClick={downloadImage} 
+                      className="w-full max-w-sm bg-black text-white py-5 rounded-xl font-bold text-sm tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-gray-900 transition-all shadow-2xl mt-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                       保存此版本
                     </button>
                   </>
