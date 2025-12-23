@@ -6,6 +6,7 @@ interface CollageCanvasProps {
   poem: CollagePoem;
   variant: PoemVariant;
   innerRef: React.Ref<HTMLDivElement>;
+  onImageLoad?: () => void; // 新增：图片加载完成的回调
 }
 
 const PunctuationFragment = ({ char }: { char: string }) => (
@@ -23,13 +24,18 @@ const PunctuationFragment = ({ char }: { char: string }) => (
   </div>
 );
 
-export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, innerRef }) => {
+export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, innerRef, onImageLoad }) => {
   const rawLines = variant !== 'image-only' ? poem.variantLines[variant] : [];
   const maxLinesAllowed = variant === '4-lines' ? 4 : variant === '8-lines' ? 8 : 0;
   const currentLines = rawLines.slice(0, maxLinesAllowed);
 
   const dateObj = new Date(poem.timestamp);
   const isEightLines = variant === '8-lines';
+
+  // 处理图片加载完成
+  const handleImgLoad = () => {
+    if (onImageLoad) onImageLoad();
+  };
 
   return (
     <div
@@ -86,6 +92,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
               <img
                 src={poem.imageUrl}
                 alt="AI Art"
+                onLoad={handleImgLoad} // 监听图片加载
                 className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
               />
             ) : (

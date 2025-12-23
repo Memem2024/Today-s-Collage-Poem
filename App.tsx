@@ -29,7 +29,6 @@ const WaggingCat = ({ scale = 1 }: { scale?: number }) => (
   </div>
 );
 
-// 定义生成的阶段文案
 const GENERATION_STAGES = [
   "正在研磨文字片段...",
   "正在捕捉思绪意象...",
@@ -68,19 +67,15 @@ const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
       <div
         className="relative bg-white p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 max-w-[300px] w-full text-center transform rotate-[-1deg] animate-in zoom-in-95 duration-300"
       >
-        {/* 装饰性胶带 */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-7 bg-white/70 backdrop-blur-sm border border-gray-200/50 rotate-2 opacity-90 shadow-sm"></div>
-
         <div className="relative mb-10 h-10">
           <WaggingCat scale={0.45} />
         </div>
-
         <div className="space-y-5 font-serif-sc">
           <div>
             <h3 className="font-black text-gray-800 text-lg mb-1 tracking-tighter">拼贴工坊进行中</h3>
             <p className="text-[10px] text-gray-400 animate-pulse">{GENERATION_STAGES[stageIndex]}</p>
           </div>
-
           <div className="grid grid-cols-2 gap-4 py-4 border-y border-gray-50">
             <div className="flex flex-col border-r border-gray-50">
               <span className="text-[9px] text-gray-400 uppercase tracking-widest mb-1">正在排队</span>
@@ -91,11 +86,9 @@ const QueueOverlay = ({ isVisible }: { isVisible: boolean }) => {
               <span className="text-xl font-black text-black">{waitTime} <span className="text-[10px] font-normal text-gray-400">秒</span></span>
             </div>
           </div>
-
           <div className="w-full bg-gray-50 h-1.5 rounded-full overflow-hidden relative">
             <div className="h-full bg-black/80 transition-all duration-1000 ease-out" style={{ width: `${Math.min(100, (30 - waitTime) * 4)}%` }}></div>
           </div>
-
           <p className="text-[10px] text-gray-400 italic leading-loose opacity-60">
             “慢一点，<br/>让每一个字都有落下的声音。”
           </p>
@@ -155,6 +148,7 @@ const App: React.FC = () => {
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isImageRendering, setIsImageRendering] = useState(false); // 新增：追踪图片是否正在浏览器渲染
   const [currentPoem, setCurrentPoem] = useState<CollagePoem | null>(null);
   const [activeVariant, setActiveVariant] = useState<PoemVariant>('4-lines');
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -223,6 +217,7 @@ const App: React.FC = () => {
   const generatePoemFromText = async (text: string, title: string) => {
     if (!text.trim()) return;
     setLoading(true);
+    setIsImageRendering(true); // 开始生成时，标记图片也在准备中
     try {
       const { fourLines, eightLines } = await extractPoeticFragments(text);
       const imageUrl = await generatePoemImage(fourLines.join(' '));
@@ -231,7 +226,8 @@ const App: React.FC = () => {
         text: t,
         style: generateFragmentStyle(t.length > 4),
       }));
-      setCurrentPoem({
+
+      const newPoem: CollagePoem = {
         id: `poem-${Date.now()}`,
         title,
         variantLines: { '4-lines': groupFragmentsStrictly(createFrags(fourLines, 'f4'), 4), '8-lines': groupFragmentsStrictly(createFrags(eightLines, 'f8'), 8) },
@@ -239,21 +235,29 @@ const App: React.FC = () => {
         background: '#ffffff',
         fontFamily: FONTS[0],
         imageUrl: imageUrl,
-      });
+      };
+
+      setCurrentPoem(newPoem);
       setActiveVariant('4-lines');
     } catch (err) {
       console.error("Silent recovery engaged.", err);
-    } finally {
-      // 完成生成后延迟关闭，确保 UI 体验连贯
-      setTimeout(() => setLoading(false), 800);
+      setLoading(false);
+      setIsImageRendering(false);
     }
+    // 注意：这里不再调用 setLoading(false)，而是等待图片 onload 回调
   };
 
+  const handleImageReady = useCallback(() => {
+    // 只有在加载状态下图片准备好了，才关闭遮罩
+    if (loading) {
+      setTimeout(() => {
+        setLoading(false);
+        setIsImageRendering(false);
+      }, 500); // 给图片一个微小的稳定时间
+    }
+  }, [loading]);
+
   const handleGenerateToday = () => { saveCurrentEntry(); generatePoemFromText(inputText, "本日切片"); };
-  const handleGenerateRange = (days: number) => {
-    const combined = entries.sort((a, b) => b.date.localeCompare(a.date)).slice(0, days).map(e => e.content).join('\n\n');
-    generatePoemFromText(combined, days === 7 ? "周刊碎片" : "月度剪报");
-  };
 
   const handleExport = useCallback(async () => {
     if (!canvasRef.current) return;
@@ -279,7 +283,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-[#f4f1ea] flex flex-col items-center p-4 md:p-8 relative">
       <GlobalRaindrops />
 
-      {/* 排队窗口，仅在 loading 为 true 时显示 */}
+      {/* 只有在 loading 为 true 时显示遮罩 */}
       <QueueOverlay isVisible={loading} />
 
       <header className="mb-4 text-center relative z-10 w-full max-w-sm flex flex-col items-center">
@@ -296,7 +300,7 @@ const App: React.FC = () => {
             </h2>
             <textarea className="w-full h-40 p-4 bg-[#fafaf9]/80 rounded-xl focus:ring-1 focus:ring-black outline-none transition-all resize-none border-none text-sm text-gray-700 leading-relaxed font-serif-sc" placeholder="书写此刻的思绪..." value={inputText} onChange={(e) => setInputText(e.target.value)} />
             <button onClick={handleGenerateToday} disabled={loading || !inputText.trim()} className="mt-4 w-full py-3 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-all disabled:bg-gray-200 shadow-lg min-h-[50px] flex items-center justify-center">
-              {loading ? '正在研磨...' : '开始拼贴'}
+              {loading ? '正在拼贴...' : '开始拼贴'}
             </button>
           </div>
 
@@ -324,7 +328,12 @@ const App: React.FC = () => {
 
           {currentPoem ? (
             <div className="space-y-4">
-              <CollageCanvas poem={currentPoem} variant={activeVariant} innerRef={canvasRef} />
+              <CollageCanvas
+                poem={currentPoem}
+                variant={activeVariant}
+                innerRef={canvasRef}
+                onImageLoad={handleImageReady} // 监听拼贴诗内部图片加载
+              />
               <button onClick={handleExport} className="w-full py-3 bg-black text-white rounded-xl text-xs font-black shadow-xl hover:bg-gray-900 transition-transform active:scale-95 flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                 保存此版本
