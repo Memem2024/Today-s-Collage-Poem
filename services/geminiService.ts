@@ -70,7 +70,7 @@ export const generatePoemImage = async (poemText: string): Promise<string> => {
     // 第一阶段：提取核心名词，绝对过滤掉敏感意象
     const keywordRes = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Extract exactly TWO neutral, concrete nouns from the text that represent nature or objects.
+      contents: `Extract exactly TWO neutral, concrete nouns from the text.
       Output format: "Noun1, Noun2" (in English).
       Strictly avoid: emotions, violence, bodies, or people.
       Text: ${poemText.substring(0, 100)}`
@@ -79,7 +79,7 @@ export const generatePoemImage = async (poemText: string): Promise<string> => {
     const keywords = keywordRes.text?.trim().replace(/[^a-zA-Z, ]/g, "") || "Minimalist, Nature";
 
     // 第二阶段：使用强制性的扁平化安全提示词
-    const safePrompt = `A draw illustration of ${keywords}, hand-printed textures, colored pencil strokes, a beige background,  flat design, soft and harmonious color palette, aesthetic white space, calm atmosphere, simplified geometric shapes.`;
+    const safePrompt = `Minimalist flat illustration of ${keywords}, Bauhaus inspired, Morandi color palette (dusty rose, sage green, muted blue), clean simplified vector art, centered composition, soft grainy paper texture, warm beige background, aesthetic negative space, high quality, peaceful zen mood.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
