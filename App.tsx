@@ -251,6 +251,7 @@ const App: React.FC = () => {
       const lines4 = groupFragmentsStrictly(fragments4, 4);
       const lines8 = groupFragmentsStrictly(fragments8, 8);
 
+      // Now guaranteed to return a URL (either AI-generated or Fallback)
       const imageUrl = await generatePoemImage(fourLines.join(' '));
 
       setCurrentPoem({
@@ -268,7 +269,7 @@ const App: React.FC = () => {
       setActiveVariant('4-lines');
     } catch (err) {
       console.error(err);
-      alert("生成失败，请重试或输入更多文字。");
+      alert("生成失败，请稍后重试。");
     } finally {
       setLoading(false);
     }
