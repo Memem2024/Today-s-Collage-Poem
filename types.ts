@@ -13,7 +13,7 @@ export interface FragmentStyle {
   padding: string;
 }
 
-export type PoemVariant = '4-lines' | '8-lines' | 'image-only';
+export type PoemVariant = '4-lines' | '8-lines' | 'image-only' | 'manual';
 
 export interface CollagePoem {
   id: string;
@@ -21,14 +21,15 @@ export interface CollagePoem {
   variantLines: {
     '4-lines': PoeticFragment[][];
     '8-lines': PoeticFragment[][];
+    'manual'?: PoeticFragment[][];
   };
   timestamp: number;
   background: string;
   fontFamily: string;
-  imageUrl?: string;
+  rawPool?: string[]; // 存储AI提取的原始语料池
 }
 
 export interface DailyEntry {
-  date: string; // YYYY-MM-DD
+  date: string; 
   content: string;
 }
