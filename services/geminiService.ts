@@ -56,7 +56,7 @@ Rules:
 
 Priority when conflicts occur (highest → lowest):
 - Output format correctness
-- ≤12 characters per line
+- <12 chinese characters per line
 - ≤2 two-character fragments per line
 - ≤4 fragments per line
 - Rhythm variation and rarity constraints
