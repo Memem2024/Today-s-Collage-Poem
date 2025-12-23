@@ -5,7 +5,7 @@ import { CollagePoem, PoemVariant } from '../types';
 interface CollageCanvasProps {
   poem: CollagePoem;
   variant: PoemVariant;
-  innerRef: React.RefObject<HTMLDivElement>;
+  innerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const PunctuationFragment = ({ char }: { char: string }) => (
