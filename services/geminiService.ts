@@ -80,20 +80,23 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
 export const generatePoemImage = async (poemText: string): Promise<string | undefined> => {
   const ai = getAI();
   try {
-    // Step 1: Generate a safe, descriptive English prompt to avoid safety filters
+    // Step 1: Use a text model to create a strictly safe, non-sensitive English prompt
+    // This bypasses the strict safety filters that often block poetic (but abstract) Chinese phrases
     const promptRes = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Transform this poetic concept into a safe, artistic visual description (English, max 15 words) for an abstract ink painting. Focus on nature, light, and atmosphere. Strictly avoid any violent, sensitive, or dark terms.
-      Poetic concept: ${poemText.substring(0, 100)}`
+      contents: `Translate the emotional essence of these poetic fragments into a safe, minimalist, and non-violent visual description (English, max 15 words).
+      Theme: Nature, light, Zen, ink-wash aesthetics.
+      STRICTLY AVOID: Any words related to fragments, cutting, people, bodies, or negative emotions.
+      Text to translate: ${poemText.substring(0, 150)}`
     });
 
-    const visualPrompt = promptRes.text?.trim() || "Abstract minimalist landscape, ink wash style, ethereal light";
+    const safePrompt = promptRes.text?.trim() || "Abstract zen nature landscape, soft lighting, minimalist ink wash style";
 
-    // Step 2: Generate the image using the safe prompt
+    // Step 2: Generate image with the safe prompt
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
-        parts: [{ text: visualPrompt }]
+        parts: [{ text: safePrompt }]
       },
       config: {
         imageConfig: {
@@ -104,9 +107,12 @@ export const generatePoemImage = async (poemText: string): Promise<string | unde
 
     const candidates = response.candidates;
     if (candidates && candidates.length > 0) {
-      for (const part of candidates[0].content.parts) {
-        if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
+      const parts = candidates[0]?.content?.parts;
+      if (parts) {
+        for (const part of parts) {
+          if (part.inlineData) {
+            return `data:image/png;base64,${part.inlineData.data}`;
+          }
         }
       }
     }
