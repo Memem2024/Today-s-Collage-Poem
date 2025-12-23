@@ -36,7 +36,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
   const lineGapClass = currentLines.length > 5 ? 'gap-4' : 'gap-10';
 
   return (
-    <div
+    <div 
       ref={innerRef}
       className="relative w-full aspect-[3/4.5] max-w-sm mx-auto bg-white shadow-2xl overflow-hidden border-[16px] border-white flex flex-col transition-all duration-500 select-none"
     >
@@ -47,9 +47,9 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
 
       {/* 纸张纹理底层 */}
       <div className="absolute inset-0 opacity-[0.1] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')] z-30"></div>
-
+      
       {/* 文字内容层：强制垂直水平居中 */}
-      <div
+      <div 
         className={`relative flex flex-col items-center justify-center z-20 transition-all duration-700 px-6 flex-grow
           ${variant === 'image-only' ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`}
       >
@@ -66,7 +66,7 @@ export const CollageCanvas: React.FC<CollageCanvasProps> = ({ poem, variant, inn
                     fontFamily: poem.fontFamily,
                     fontWeight: 700,
                     transform: `rotate(${frag.style.rotation}deg)`,
-                    fontSize: currentLines.length > 5 ? '0.8rem' : '1rem',
+                    fontSize: currentLines.length > 5 ? '0.8rem' : '1rem', 
                     padding: currentLines.length > 5 ? '4px 10px' : '6px 14px',
                     border: '0.5px solid rgba(0,0,0,0.05)',
                     lineHeight: 1.1,

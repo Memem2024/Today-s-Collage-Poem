@@ -2,7 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 export interface PoeticResponse {
-  fourLines: string[][];
+  fourLines: string[][]; 
   eightLines: string[][];
 }
 
