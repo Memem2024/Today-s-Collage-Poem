@@ -55,7 +55,6 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
         .filter(s => s.length >= 2 && s.length <= 8);
       
       if (!isShortInput) {
-        // Strict substring removal for long inputs
         raw.sort((a, b) => b.length - a.length);
         let unique: string[] = [];
         for (let s of raw) {
@@ -67,7 +66,7 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
       }
       return raw;
     };
-    
+
     return {
       fourLines: filterAndClean(data.fourLines).slice(0, 10),
       eightLines: filterAndClean(data.eightLines).slice(0, 16)
@@ -81,11 +80,23 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
 export const generatePoemImage = async (poemText: string): Promise<string | undefined> => {
   const ai = getAI();
   try {
+    // Step 1: Convert poem text to a safe visual prompt
+    const promptRes = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `将以下诗句转化为一段简短的视觉构图描述（英文），用于艺术插画生成。
+      要求：去除所有负面或敏感词汇，只保留自然意象（如：云、光、植物、水墨）。
+      风格定调：Minimalist, Japanese zen style, ink wash, high key.
+      诗句：${poemText}`
+    });
+
+    const visualPrompt = promptRes.text?.trim() || "Minimalist abstract zen landscape, ink wash style";
+
+    // Step 2: Generate image with the safe prompt
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
-          { text: `Create a minimalist, artistic illustration for: "${poemText}". Style: Japanese ink wash or modern abstract collage. Soft tones, plenty of white space. No text.` }
+          { text: visualPrompt }
         ]
       },
       config: {
