@@ -66,6 +66,5 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
     };
   } catch (error) {
     console.error("AI Generation error:", error);
-    return fallbackExtract(text);
   }
 };
