@@ -1,11 +1,15 @@
 
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
-  plugins: [react()],
-  define: {
-    // 确保注入的是字符串，即使环境变量不存在也注入空字符串而非 undefined
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || "")
-  }
+export default defineConfig(({ mode }) => {
+  // 显式加载当前环境的变量，第三个参数 '' 表示加载所有前缀的变量
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react()],
+    define: {
+      // 优先级：系统环境变量 > .env文件变量 > 空字符串
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || process.env.API_KEY || "")
+    }
+  };
 });
