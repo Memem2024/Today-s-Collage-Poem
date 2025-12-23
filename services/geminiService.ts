@@ -79,7 +79,7 @@ export const generatePoemImage = async (poemText: string): Promise<string> => {
     const keywords = keywordRes.text?.trim().replace(/[^a-zA-Z, ]/g, "") || "Minimalist, Nature";
 
     // 第二阶段：使用强制性的扁平化安全提示词
-    const safePrompt = `A clean, professional minimalist flat illustration of ${keywords},Premium-feel illustration featuring hand-printed textures, colored pencil strokes, a beige background, and flat design, soft and harmonious color palette, aesthetic white space, calm atmosphere, high quality, simplified geometric shapes.`;
+    const safePrompt = `A draw illustration of ${keywords}, hand-printed textures, colored pencil strokes, a beige background,  flat design, soft and harmonious color palette, aesthetic white space, calm atmosphere, simplified geometric shapes.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
