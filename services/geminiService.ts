@@ -6,27 +6,6 @@ export interface PoeticResponse {
   eightLines: string[][];
 }
 
-export const fallbackExtract = (text: string): PoeticResponse => {
-  console.warn("Using fallback poetic fragments.");
-  return {
-    fourLines: [
-      ["此刻", "情绪", "拼贴"],
-      ["平静", "之下"],
-      ["无声", "力量"],
-      ["推行", "时光"]
-    ],
-    eightLines: [
-      ["缓慢", "流动"],
-      ["表面", "平静"],
-      ["水底", "无声"],
-      ["力量", "推行"],
-      ["时光", "悄然"],
-      ["留白", "此刻"],
-      ["呼吸", "碎片"],
-      ["思绪", "成河"]
-    ]
-  };
-};
 
 export const extractPoeticFragments = async (text: string): Promise<PoeticResponse> => {
   // Vite 在构建时会将 process.env.API_KEY 替换为具体的字符串
@@ -35,11 +14,11 @@ export const extractPoeticFragments = async (text: string): Promise<PoeticRespon
   // 如果替换后的结果为空，或者依然是占位符，则降级
   if (!apiKey || apiKey === "") {
     console.error("API Key is missing in the production build.");
-    return fallbackExtract(text);
+
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `你是一个极具解构精神的拼贴诗人。请对用户文本进行“语料库式”的深度拆解。
